@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesin Kasir Sederhana</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .product-btn {
+            background: #f8f9ff;
+            border: 2px solid #e1e5ff;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .product-btn:hover {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .product-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .qty-btn:hover {
+            background: #5a67d8;
+        }
+
+        .total-display {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .total-amount {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .pay-btn {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .pay-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(72, 187, 120, 0.4);
+        }
+
+        .payment-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .payment-section.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .receipt {
+            background: #f7fafc;
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .receipt.active {
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Panel Produk -->
+        <div class="panel">
+            <div class="header">
+                <h1>📦 Produk</h1>
+            </div>
+            
+            <div class="product-grid" id="productGrid">
+                <!-- Produk akan di-generate oleh JavaScript -->
+            </div>
+        </div>
+
+        <!-- Panel Keranjang & Pembayaran -->
+        <div class="panel">
+            <div class="header">
+                <h1>🛒 Keranjang</h1>
+            </div>
+            
+            <div id="cartItems"></div>
+            
+            <div class="total-display">
+                <div class="total-amount" id="totalAmount">Rp 0</div>
+                <div>Total Belanja</div>
+            </div>
+
+            <button class="pay-btn" onclick="showPayment()">
+                💳 BAYAR
+            </button>
+
+            <!-- Section Pembayaran -->
+            <div class="payment-section" id="paymentSection">
+                <div class="input-group">
+                    <label>💰 Jumlah Bayar</label>
+                    <input type="number" id="paymentAmount" placeholder="Masukkan jumlah pembayaran" min="0">
+                </div>
+                <div class="input-group">
+                    <label>👤 Nama Pelanggan</label>
+                    <input type="text" id="customerName" placeholder="Nama pelanggan">
+                </div>
+                <button class="pay-btn" onclick="processPayment()">
+                    ✅ PROSES PEMBAYARAN
+                </button>
+            </div>
+
+            <!-- Struk -->
+            <div class="receipt" id="receipt">
+                <h3 style="text-align: center; margin-bottom: 20px; color: #333;">📄 STRUK PEMBELIAN</h3>
+                <div id="receiptContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data produk
+        const products = [
+            { id: 1, name: 'Nasi Goreng', price: 15000 },
+            { id: 2, name: 'Mie Goreng', price: 12000 },
+            { id: 3, name: 'Ayam Bakar', price: 25000 },
+            { id: 4, name: 'Es Teh', price: 5000 },
+            { id: 5, name: 'Jus Jeruk', price: 8000 },
+            { id: 6, name: 'Roti Bakar', price: 10000 },
+            { id: 7, name: 'Sate Ayam (10)', price: 20000 },
+            { id: 8, name: 'Pecel Lele', price: 18000 }
+        ];
+
+        let cart = [];
+
+        // Inisialisasi
+        document.addEventListener('DOMContentLoaded', function() {
+            renderProducts();
+            renderCart();
+        });
+
+        // Render produk
+        function renderProducts() {
+            const productGrid = document.getElementById('productGrid');
+            productGrid.innerHTML = products.map(product => `
+                <div class="product-btn" onclick="addToCart(${product.id})">
+                    <div>${product.name}</div>
+                    <div class="product-price">Rp ${formatRupiah(product.price)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Tambah ke keranjang
+        function addToCart(productId) {
+            const product = products.find(p => p.id === productId);
+            const existingItem = cart.find(item => item.id === productId);
+
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ ...product, quantity: 1 });
+            }
+
+            renderCart();
+            showNotification(`${product.name} ditambahkan ke keranjang!`);
+        }
+
+        // Render keranjang
+        function renderCart() {
+            const cartItems = document.getElementById('cartItems');
+            const totalAmount = document.getElementById('totalAmount');
+
+            if (cart.length === 0) {
+                cartItems.innerHTML = '<p style="text-align: center; color: #666; font-style: italic;">Keranjang kosong</p>';
+            } else {
+                cartItems.innerHTML = cart.map(item => `
+                    <div class="cart-item">
+                        <div>
+                            <strong>${item.name}</strong><br>
+                            <small>Rp ${formatRupiah(item.price)} x ${item.quantity}</small>
+                        </div>
+                        <div class="qty-controls">
+                            <button class="qty-btn" onclick="changeQuantity(${item.id}, -1)">-</button>
+                            <span style="min-width: 30px; text-align: center; font-weight: bold;">${item.quantity}</span>
+                            <button class="qty-btn" onclick="changeQuantity(${item.id}, 1)">+</button>
+                            <button class="qty-btn" style="background: #e53e3e;" onclick="removeItem(${item.id})">×</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            totalAmount.textContent = `Rp ${formatRupiah(total)}`;
+        }
+
+        // Ubah kuantitas
+        function changeQuantity(productId, change) {
+            const item = cart.find(item => item.id === productId);
+            if (item) {
+                item.quantity += change;
+                if (item.quantity <= 0) {
+                    removeItem(productId);
+                } else {
+                    renderCart();
+                }
+            }
+        }
+
+        // Hapus item
+        function removeItem(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            renderCart();
+        }
+
+        // Format Rupiah
+        function formatRupiah(angka) {
+            return angka.toLocaleString('id-ID');
+        }
+
+        // Tampilkan payment section
+        function showPayment() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            if (total === 0) {
+                alert('Keranjang kosong!');
+                return;
+            }
+            
+            document.getElementById('paymentSection').classList.add('active');
+            document.getElementById('paymentAmount').focus();
+            document.getElementById('paymentAmount').value = total;
+        }
+
+        // Proses pembayaran
+        function processPayment() {
+            const paymentAmount = parseInt(document.getElementById('paymentAmount').value);
+            const customerName = document.getElementById('customerName').value || 'Pelanggan';
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            if (paymentAmount < total) {
+                alert('Jumlah pembayaran kurang!');
+                return;
+            }
+
+            const change = paymentAmount - total;
+            generateReceipt(customerName, total, paymentAmount, change);
+            cart = []; // Kosongkan keranjang
+            renderCart();
+            document.getElementById('paymentSection').classList.remove('active');
+        }
+
+        // Generate struk
+        function generateReceipt(customerName, total, payment, change) {
+            const now = new Date();
+            const receiptContent = document.getElementById('receiptContent');
+            const receipt = document.getElementById('receipt');
+
+            receiptContent.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h4>TOKO MAKAN "ENAK"</h4>
+                    <p>${now.toLocaleDateString('id-ID')} ${now.toLocaleTimeString('id-ID')}</p>
+                    <hr>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Pelanggan:</strong> ${customerName}</p>
+                    ${cart.map(item => `
+                        <p>${item.name} x${item.quantity} - Rp ${formatRupiah(item.price * item.quantity)}</p>
+                    `).join('')}
+                    <hr>
+                    <p><strong>Total Belanja:</strong> Rp ${formatRupiah(total)}</p>
+                    <p><strong>Bayar:</strong> Rp ${formatRupiah(payment)}</p>
+                    <p><strong>Kembali:</strong> Rp ${formatRupiah(change)}</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px; font-size: 0.9em; color: #666;">
+                    <p>Terima kasih telah berbelanja!</p>
+                    <p>Selamat menikmati hidangan 🍽️</p>
+                </div>
+            `;
+
+            receipt.classList.add('active');
+            showNotification('✅ Transaksi berhasil! Struk sudah dicetak.');
+        }
+
+        // Notifikasi
+        function showNotification(message) {
+            // Simple notification menggunakan alert untuk demo
+            // Bisa diganti dengan toast notification yang lebih bagus
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed; top: 20px; right: 20px; background: #48bb78; 
+                color: white; padding: 15px 20px; border-radius: 10px; 
+                box-shadow: 0 10px 25px rgba(72,187,120,0.4); z-index: 1000;
+                animation: slideIn 0.3s ease;
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
